@@ -17,16 +17,16 @@ public class StaffAuthTest {
 
     @Test
     void any_staff_auth_via_authenticate() throws RHException {
-        Doctor d = new Doctor("D1","Dr. Alice","alice");
-        d.setPassword("pwd");
+        Doctor d = new Doctor("D1","Dr. Purna","purna");
+        d.setPassword("purna");
         home.addDoctor(d);
 
-        Nurse n = new Nurse("N1","Nurse Bob","bob", Gender.MALE);
-        n.setPassword("123");
+        Nurse n = new Nurse("Chamudi","Chamudi Abeysinghe","chamudi", Gender.FEMALE);
+        n.setPassword("chamudi");
         home.addNurse(n);
 
-        Staff s1 = home.authenticate("alice","pwd");
-        Staff s2 = home.authenticate("bob","123");
+        Staff s1 = home.authenticate("purna","purna");
+        Staff s2 = home.authenticate("chamudi","chamudi");
 
         assertTrue(s1 instanceof Doctor);
         assertTrue(s2 instanceof Nurse);
@@ -34,9 +34,9 @@ public class StaffAuthTest {
 
     @Test
     void wrong_password_fails() throws RHException {
-        Doctor d = new Doctor("D2","Dr. Wrong","dw");
-        d.setPassword("right");
+        Doctor d = new Doctor("D1","Dr. Purna","purna");
+        d.setPassword("purna");
         home.addDoctor(d);
-        assertNull(home.authenticate("dw","wrong"));
+        assertNull(home.authenticate("purna","purna123"));
     }
 }
