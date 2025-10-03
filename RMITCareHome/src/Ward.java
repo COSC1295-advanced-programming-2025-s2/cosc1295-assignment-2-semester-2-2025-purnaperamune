@@ -23,7 +23,7 @@ public class Ward implements Serializable {
     }
 
     public List<Room> getRooms() {
-        return rooms; 
+        return rooms;
     }
 
     @Override public String toString() {
