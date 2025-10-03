@@ -11,9 +11,19 @@ public class MedicationOrder implements Serializable {
         this.name = name; this.dose = dose; this.times = new ArrayList<>(times);
     }
 
-    public String name() { return name; }
-    public String dose() { return dose; }
-    public List<LocalTime> times() { return Collections.unmodifiableList(times); }
+    public String name() {
+        return name;
+    }
 
-    @Override public String toString() { return name + " " + dose + " @" + times; }
+    public String dose() {
+        return dose;
+    }
+
+    public List<LocalTime> times() {
+        return Collections.unmodifiableList(times);
+    }
+
+    @Override public String toString() {
+        return name + " " + dose + " @" + times;
+    }
 }

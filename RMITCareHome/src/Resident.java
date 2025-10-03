@@ -13,16 +13,43 @@ public class Resident implements Serializable {
         this.id = id; this.name = name; this.gender = gender;
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public Gender getGender() { return gender; }
-    public List<Prescription> getPrescriptions() { return prescriptions; }
-    public List<MedicationAdministration> getAdministrations() { return administrations; }
+    public String getId() {
+        return id;
+    }
 
-    public void addPrescription(Prescription p) { prescriptions.add(p); }
-    public void addAdministration(MedicationAdministration a) { administrations.add(a); }
+    public String getName() {
+        return name;
+    }
 
-    @Override public boolean equals(Object o) { return (o instanceof Resident r) && r.id.equals(id); }
-    @Override public int hashCode() { return Objects.hash(id); }
-    @Override public String toString() { return name + " (" + gender + ", id=" + id + ")"; }
+    public Gender getGender() {
+        return gender;
+    }
+
+    public List<Prescription> getPrescriptions() {
+        return prescriptions;
+    }
+
+    public List<MedicationAdministration> getAdministrations() {
+        return administrations;
+    }
+
+    public void addPrescription(Prescription p) {
+        prescriptions.add(p);
+    }
+
+    public void addAdministration(MedicationAdministration a) {
+        administrations.add(a);
+    }
+
+    @Override public boolean equals(Object o) {
+        return (o instanceof Resident r) && r.id.equals(id);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override public String toString() {
+        return name + " (" + gender + ", id=" + id + ")";
+    }
 }

@@ -4,13 +4,25 @@ public class Bed implements Serializable {
     private final String label;
     private Resident resident;
 
-    public Bed(String label) { this.label = label; }
+    public Bed(String label) {
+        this.label = label;
+    }
 
-    public Resident getResident() { return resident; }
-    public void assignResident(Resident r) { this.resident = r; }
-    public void removeResident() { this.resident = null; }
+    public Resident getResident() {
+        return resident;
+    }
 
-    public String simpleLabel() { return label; }
+    public void assignResident(Resident r) {
+        this.resident = r;
+    }
+
+    public void removeResident() {
+        this.resident = null;
+    }
+
+    public String simpleLabel() {
+        return label;
+    }
 
     public String describe() {
         StringBuilder sb = new StringBuilder("[" + label + "]\n");

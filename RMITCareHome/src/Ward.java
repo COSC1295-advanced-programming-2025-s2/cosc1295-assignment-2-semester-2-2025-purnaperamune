@@ -5,7 +5,9 @@ public class Ward implements Serializable {
     private final String name;
     private final List<Room> rooms = new ArrayList<>();
 
-    private Ward(String name) { this.name = name; }
+    private Ward(String name) {
+        this.name = name;
+    }
 
     public static Ward of(String name, int[] bedsPerRoom) {
         Ward w = new Ward(name);
@@ -20,7 +22,11 @@ public class Ward implements Serializable {
         return rooms.get(idx);
     }
 
-    public List<Room> getRooms() { return rooms; }
+    public List<Room> getRooms() {
+        return rooms; 
+    }
 
-    @Override public String toString() { return name; }
+    @Override public String toString() {
+        return name;
+    }
 }

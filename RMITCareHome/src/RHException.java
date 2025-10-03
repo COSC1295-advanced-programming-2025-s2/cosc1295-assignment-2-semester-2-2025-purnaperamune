@@ -1,3 +1,5 @@
 public class RHException extends Exception {
-    public RHException(String message) { super(message); }
+    public RHException(String message) {
+        super(message);
+    }
 }

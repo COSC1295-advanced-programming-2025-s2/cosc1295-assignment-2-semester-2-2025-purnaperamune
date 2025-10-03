@@ -18,7 +18,9 @@ public class Room implements Serializable {
         return beds.get(idx);
     }
 
-    public List<Bed> getBeds() { return beds; }
+    public List<Bed> getBeds() {
+        return beds;
+    }
 
     /**
      * - If room empty, okay.
@@ -35,5 +37,7 @@ public class Room implements Serializable {
         return existing == null || existing == g;
     }
 
-    @Override public String toString() { return name; }
+    @Override public String toString() {
+        return name;
+    }
 }
