@@ -24,4 +24,23 @@ public class CareHome implements Serializable {
         return h;
     }
 
+    // Authentication
+    public boolean authenticateManager(String username, String password) {
+        for (Manager m : managers) if (Objects.equals(m.getUsername(), username) && m.checkPassword(password)) return true;
+        return false;
+    }
+
+    public Staff authenticate(String username, String password) {
+        for (Manager m : managers) {
+            if (m.getUsername().equals(username) && m.checkPassword(password)) return m;
+        }
+        for (Doctor d : doctors) {
+            if (d.getUsername().equals(username) && d.checkPassword(password)) return d;
+        }
+        for (Nurse n : nurses) {
+            if (n.getUsername().equals(username) && n.checkPassword(password)) return n;
+        }
+        return null;
+    }
+
 }
