@@ -124,4 +124,23 @@ public class CareHome implements Serializable {
         logs.add(ActionLog.now(ActionType.MOVE_RESIDENT, by.getId(), "Move " + r.getName() + " -> " + to.simpleLabel()));
     }
 
+    // Prescription related methods
+    public void attachPrescription(Doctor doctor, Resident r, Prescription p) throws RHException {
+        if (doctor == null) throw new AuthorizationException("Only doctors can attach prescriptions.");
+        if (!doctors.contains(doctor)) throw new AuthorizationException("Unknown doctor.");
+        r.addPrescription(p);
+        logs.add(ActionLog.now(ActionType.ADD_PRESCRIPTION, doctor.getId(), "Rx for " + r.getName()));
+    }
+
+    public void recordAdministration(Nurse nurse, Resident r, String med, String dose, LocalDateTime when) throws RHException {
+        if (nurse == null) throw new AuthorizationException("Only nurses can administer.");
+        if (!nurses.contains(nurse)) throw new AuthorizationException("Unknown nurse.");
+
+        DayOfWeek d = when.getDayOfWeek();
+        boolean rostered = nurseRoster.get(d).stream().anyMatch(a -> a.staff().equals(nurse));
+        if (!rostered) throw new NotRosteredException("Nurse not rostered today.");
+        r.addAdministration(new MedicationAdministration(med, dose, when, nurse));
+        logs.add(ActionLog.now(ActionType.ADMINISTER_MED, nurse.getId(), "Admin " + med + " to " + r.getName()));
+    }
+
 }
