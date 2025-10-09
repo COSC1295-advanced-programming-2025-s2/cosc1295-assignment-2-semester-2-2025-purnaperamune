@@ -77,4 +77,51 @@ public class CareHome implements Serializable {
         day.add(new ShiftAssignment<>(n, s));
     }
 
+    // Beds & Residents related methods
+    public Bed getBed(int wardIdx, int roomIdx, int bedIdx) throws RHException {
+        // Validate 1-based then convert to 0-based
+        if (wardIdx <= 0 || wardIdx > wards.size())
+            throw new ValidationException("Invalid ward number (use 1.." + wards.size() + ").");
+
+        Ward w = wards.get(wardIdx - 1);
+        int roomCount = w.getRooms().size();
+        if (roomIdx <= 0 || roomIdx > roomCount)
+            throw new ValidationException("Invalid room number for ward " + wardIdx + " (use 1.." + roomCount + ").");
+
+        Room r = w.getRooms().get(roomIdx - 1);
+        int bedCount = r.getBeds().size();
+        if (bedIdx <= 0 || bedIdx > bedCount)
+            throw new ValidationException("Invalid bed number for ward " + wardIdx + ", room " + roomIdx +
+                    " (use 1.." + bedCount + ").");
+
+        return r.getBeds().get(bedIdx - 1);
+    }
+
+    public void allocateResident(Resident r, int wardIdx, int roomIdx, int bedIdx, Manager by) throws RHException {
+        Bed b = getBed(wardIdx, roomIdx, bedIdx);
+        if (b.getResident() != null) throw new BedOccupiedException("Bed already occupied.");
+        // if room has other residents, ensure same gender.
+        // FIX: 1-based -> 0-based for direct access to ward/room
+        Room room = wards.get(wardIdx - 1).getRoom(roomIdx - 1);
+        if (!room.isCompatibleGender(r.getGender()))
+            throw new ValidationException("Gender incompatibility for room.");
+        b.assignResident(r);
+        logs.add(ActionLog.now(ActionType.ADD_RESIDENT, by.getId(), "Alloc " + r.getName() + " -> " + b.simpleLabel()));
+    }
+
+    public void moveResident(int fromW, int fromR, int fromB, int toW, int toR, int toB, Manager by) throws RHException {
+        Bed from = getBed(fromW, fromR, fromB);
+        Bed to = getBed(toW, toR, toB);
+        Resident r = from.getResident();
+        if (r == null) throw new ValidationException("Source bed empty.");
+        if (to.getResident() != null) throw new BedOccupiedException("Destination bed occupied.");
+        // gender check on target room
+        // FIX: 1-based -> 0-based for direct access to ward/room
+        if (!wards.get(toW - 1).getRoom(toR - 1).isCompatibleGender(r.getGender()))
+            throw new ValidationException("Gender incompatibility in target room.");
+        from.removeResident();
+        to.assignResident(r);
+        logs.add(ActionLog.now(ActionType.MOVE_RESIDENT, by.getId(), "Move " + r.getName() + " -> " + to.simpleLabel()));
+    }
+
 }
