@@ -25,9 +25,9 @@ public class CareHome implements Serializable {
         CareHome h = new CareHome();
         // Two wards with 6 rooms each, beds per room vary (1..4).
         // Ward 0
-        h.wards.add(Ward.of("Ward-1", new int[]{1, 2, 4, 4, 4, 4}));
+        h.wards.add(Ward.of("Ward-1", new int[]{1,2,2,3,4,2}));
         // Ward 1
-        h.wards.add(Ward.of("Ward-2", new int[]{1, 2, 4, 4, 4, 4}));
+        h.wards.add(Ward.of("Ward-2", new int[]{1,2,3,2,4,2}));
         // Default manager
         Manager m = new Manager(UUID.randomUUID().toString(), "Default Manager", "admin");
         m.setPassword("admin");
@@ -75,6 +75,13 @@ public class CareHome implements Serializable {
                 throw new RosterException("Nurse already assigned on " + s.day());
         }
         day.add(new ShiftAssignment<>(n, s));
+    }
+
+    public void assignDoctorHour(Doctor d, Shift hourSlot) throws RHException {
+        // 1-hour only
+        if (Duration.between(hourSlot.start(), hourSlot.end()).toHours() != 1)
+            throw new ValidationException("Doctor slot must be 1 hour.");
+        doctorRoster.get(hourSlot.day()).add(new ShiftAssignment<>(d, hourSlot));
     }
 
     // Beds & Residents related methods
@@ -143,4 +150,89 @@ public class CareHome implements Serializable {
         logs.add(ActionLog.now(ActionType.ADMINISTER_MED, nurse.getId(), "Admin " + med + " to " + r.getName()));
     }
 
+    public void dischargeResident(Resident r, Manager by) throws RHException, IOException {
+        // remove from bed
+        Bed b = findBedOf(r);
+        if (b == null) throw new ValidationException("Resident not in any bed.");
+        b.removeResident();
+
+        File dir = new File("archive");
+        if (!dir.exists()) dir.mkdirs();
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(new File(dir, r.getId() + ".dat")))) {
+            oos.writeObject(r);
+        }
+        logs.add(ActionLog.now(ActionType.DISCHARGE, by.getId(), "Discharge " + r.getName()));
+    }
+
+    private Bed findBedOf(Resident r) {
+        for (Ward w: wards) {
+            for (Room rm: w.getRooms()) {
+                for (Bed b: rm.getBeds()) {
+                    if (b.getResident() != null && b.getResident().equals(r)) return b;
+                }
+            }
+        }
+        return null;
+    }
+
+    // -------- NEW: Readable layout snapshot
+    /** Returns a readable snapshot of all wards/rooms/beds and occupancy (1-based labels). */
+    public String layoutSnapshot() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n========= Current Bed Layout =========\n");
+        for (int w = 0; w < wards.size(); w++) {
+            sb.append("Ward ").append(w + 1).append(":\n");
+            List<Room> rooms = wards.get(w).getRooms();
+            for (int r = 0; r < rooms.size(); r++) {
+                Room room = rooms.get(r);
+                sb.append("  Room ").append(r + 1).append(": ");
+                List<Bed> beds = room.getBeds();
+                for (int b = 0; b < beds.size(); b++) {
+                    Bed bed = beds.get(b);
+                    String occ = (bed.getResident() == null)
+                            ? "[Bed " + (b + 1) + ": VACANT]"
+                            : "[Bed " + (b + 1) + ": " + bed.getResident().getName() + "]";
+                    sb.append(occ).append("  ");
+                }
+                sb.append("\n");
+            }
+        }
+        sb.append("======================================\n");
+        return sb.toString();
+    }
+
+    // -------- Compliance check
+    // - Each day: at least one nurse on 08-16 and at least one nurse on 14-22
+    // - No nurse > 8h per day (enforced at assignment)
+    // - At least one doctor 1-hr slot each day
+    public void checkCompliance() throws RHException {
+        for (DayOfWeek d: DayOfWeek.values()) {
+            List<ShiftAssignment<Nurse>> nDay = nurseRoster.get(d);
+            boolean has0816 = nDay.stream().anyMatch(a -> a.shift().start().equals(LocalTime.of(8,0)) && a.shift().end().equals(LocalTime.of(16,0)));
+            boolean has1422 = nDay.stream().anyMatch(a -> a.shift().start().equals(LocalTime.of(14,0)) && a.shift().end().equals(LocalTime.of(22,0)));
+            if (!(has0816 && has1422))
+                throw new ComplianceException("Nurse coverage missing for " + d + " (need 08-16 and 14-22).");
+
+            Map<Nurse, Long> count = new HashMap<>();
+            for (ShiftAssignment<Nurse> a : nDay) count.merge(a.staff(), 1L, Long::sum);
+            for (Map.Entry<Nurse, Long> e : count.entrySet())
+                if (e.getValue() > 1) throw new ComplianceException("Nurse " + e.getKey().getName() + " assigned >1 shift on " + d);
+            // doctors
+            List<ShiftAssignment<Doctor>> dDay = doctorRoster.get(d);
+            boolean hasDoctorHour = dDay.stream().anyMatch(a -> Duration.between(a.shift().start(), a.shift().end()).toHours() == 1);
+            if (!hasDoctorHour) throw new ComplianceException("No doctor 1-hour slot set for " + d);
+        }
+    }
+
+    public void save(String file) throws IOException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(this);
+        }
+    }
+
+    public static CareHome load(String file) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (CareHome) ois.readObject();
+        }
+    }
 }
