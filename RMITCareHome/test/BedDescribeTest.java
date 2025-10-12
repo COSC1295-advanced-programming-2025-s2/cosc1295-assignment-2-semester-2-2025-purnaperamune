@@ -13,8 +13,8 @@ public class BedDescribeTest {
     void setup() throws RHException {
         home = CareHome.defaultLayoutWithManager();
         mgr = home.getManagers().get(0);
-        doc = new Doctor("D1","Dr. Smith","smith"); doc.setPassword("pw"); home.addDoctor(doc);
-        nurse = new Nurse("N1","Nina","nina", Gender.FEMALE); nurse.setPassword("pw"); home.addNurse(nurse);
+        doc = new Doctor("D1","Dr. Purna","purna"); doc.setPassword("purna"); home.addDoctor(doc);
+        nurse = new Nurse("N1","Chamudi","chamudi", Gender.FEMALE); nurse.setPassword("chamudi"); home.addNurse(nurse);
         DayOfWeek today = LocalDate.now().getDayOfWeek();
         home.assignNurseShift(nurse, new Shift(today, LocalTime.of(8,0), LocalTime.of(16,0)));
     }
