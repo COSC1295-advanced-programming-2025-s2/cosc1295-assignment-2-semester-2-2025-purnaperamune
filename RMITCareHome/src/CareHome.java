@@ -25,9 +25,9 @@ public class CareHome implements Serializable {
         CareHome h = new CareHome();
         // Two wards with 6 rooms each, beds per room vary (1..4).
         // Ward 0
-        h.wards.add(Ward.of("Ward-1", new int[]{1,2,2,3,4,2}));
+        h.wards.add(Ward.of("Ward-1", new int[]{1,2,4,4,4,4}));
         // Ward 1
-        h.wards.add(Ward.of("Ward-2", new int[]{1,2,3,2,4,2}));
+        h.wards.add(Ward.of("Ward-2", new int[]{1,2,4,4,4,4}));
         // Default manager
         Manager m = new Manager(UUID.randomUUID().toString(), "Default Manager", "admin");
         m.setPassword("admin");
